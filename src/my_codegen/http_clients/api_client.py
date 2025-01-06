@@ -142,7 +142,7 @@ class ApiClient:
     ):
         self.base_url = base_url if base_url else BaseUrlSingleton.get_base_url()
         self.auth_token = auth_token
-        self.request_handler = RequestHandler(auth_token)
+        self._request_handler = RequestHandler(auth_token)
 
     def _send_request(
             self,
@@ -159,17 +159,17 @@ class ApiClient:
 
         url = f"{self.base_url}{formatted_path}"
 
-        prepared_request = self.request_handler.prepare_request(
+        prepared_request = self._request_handler.prepare_request(
             method, url, payload, headers, params, files
         )
-        response = self.request_handler.send_request(prepared_request, path)
+        response = self._request_handler.send_request(prepared_request, path)
 
-        self.request_handler.validate_response(
+        self._request_handler.validate_response(
             response, expected_status, method, payload or params
         )
-        return self.request_handler.process_response(response)
+        return self._request_handler.process_response(response)
 
-    def get(
+    def _get(
             self,
             path: str,
             headers: Optional[Dict] = None,
@@ -186,7 +186,7 @@ class ApiClient:
             **kwargs,
         )
 
-    def post(
+    def _post(
             self,
             path: str,
             payload: Optional[Union[Dict, List]] = None,
@@ -205,7 +205,7 @@ class ApiClient:
             **kwargs,
         )
 
-    def put(
+    def _put(
             self,
             path: str = "",
             payload: Optional[Dict] = None,
@@ -226,7 +226,7 @@ class ApiClient:
             **kwargs,
         )
 
-    def patch(
+    def _patch(
             self,
             path: str,
             payload: Optional[Dict] = None,
@@ -245,7 +245,7 @@ class ApiClient:
             **kwargs,
         )
 
-    def delete(
+    def _delete(
             self,
             path: str,
             headers: Optional[Dict] = None,
@@ -277,7 +277,7 @@ class StorageS3(ApiClient):
 
         with open(file_path, "rb") as f:
             files = {"file": (os.path.basename(file_path), f, mime_type)}
-            return self.put(files=files)
+            return self._put(files=files)
 
     def download(self):
-        return self.get(path="")
+        return self._get(path="")
