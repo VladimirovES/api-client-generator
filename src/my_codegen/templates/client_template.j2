@@ -29,36 +29,31 @@ class {{ class_name }}(ApiClient):
 
         path =f"{{ method.path }}"
         {% if method.http_method == 'GET' %}
-        r_json = self.get(
+        r_json = self._get(
             path=self._service + path,
             params=params,
             expected_status=status
         )
         {% elif method.http_method in ['POST', 'PUT', 'PATCH', 'DELETE'] %}
             {% if method.payload_type and method.payload_type.startswith('List[') %}
-        r_json = self.{{ method.http_method.lower() }}(
+        r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             payload=[item.dict() for item in payload],
             expected_status=status
         )
             {% elif method.payload_type and method.payload_type != 'Any' %}
-        r_json = self.{{ method.http_method.lower() }}(
+        r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             payload=payload.dict() if payload else None,
             expected_status=status
         )
             {% else %}
-        r_json = self.{{ method.http_method.lower() }}(
+        r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             expected_status=status
         )
+
             {% endif %}
-        {% else %}
-        # Если вдруг HEAD/OPTIONS/etc.
-        r_json = self.{{ method.http_method.lower() }}(
-            path=path,
-            expected_status=status
-        )
         {% endif %}
 
         {% if method.return_type != 'Any' %}

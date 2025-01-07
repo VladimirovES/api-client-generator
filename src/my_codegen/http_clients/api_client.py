@@ -93,11 +93,10 @@ class RequestHandler:
             self, prepared_request: requests.PreparedRequest, path: str
     ) -> requests.Response:
         response = self.session.send(prepared_request)
-        with allure.step(f"{prepared_request.method}: {path}"):
+        with allure.step(f'<{prepared_request.method}> {path}'):
             allure_report(
                 response=response,
-                payload=prepared_request.body,
-                method=prepared_request.method,
+                payload=prepared_request.body
             )
         return response
 
@@ -208,7 +207,7 @@ class ApiClient:
     def _put(
             self,
             path: str = "",
-            payload: Optional[Dict] = None,
+            payload: Optional[Union[Dict, List]] = None,
             params: Optional[Dict] = None,
             headers: Optional[Dict] = None,
             files: Optional[Dict] = None,
@@ -229,7 +228,7 @@ class ApiClient:
     def _patch(
             self,
             path: str,
-            payload: Optional[Dict] = None,
+            payload: Optional[Union[Dict, List]] = None,
             params: Optional[Dict] = None,
             headers: Optional[Dict] = None,
             expected_status: HTTPStatus = HTTPStatus.OK,
@@ -250,7 +249,7 @@ class ApiClient:
             path: str,
             headers: Optional[Dict] = None,
             params: Optional[Dict] = None,
-            payload: Optional[Dict] = None,
+            payload: Optional[Union[Dict, List]] = None,
             expected_status: HTTPStatus = HTTPStatus.NO_CONTENT,
             **kwargs,
     ) -> Union[Dict, List]:

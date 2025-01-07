@@ -19,7 +19,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def allure_report(response, payload, method):
+def allure_report(response, payload):
     if payload is not None:
         try:
             if isinstance(payload, bytes):
@@ -28,9 +28,9 @@ def allure_report(response, payload, method):
             html_data = f"<pre><code>{formatted_data}</code></pre>"
         except (TypeError, UnicodeDecodeError, json.JSONDecodeError):
             html_data = "<pre><code>Binary data cannot be serialized</code></pre>"
-        allure.attach(html_data, name=f" ➡️ {method} - Data ", attachment_type=allure.attachment_type.HTML)
+        allure.attach(html_data, name=f" Request ", attachment_type=allure.attachment_type.HTML)
     else:
-        allure.attach("Data is None", name=f"payload - {method}", attachment_type=allure.attachment_type.TEXT)
+        allure.attach("Data is None", name=f"Request", attachment_type=allure.attachment_type.TEXT)
 
     try:
         formatted_response = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
@@ -38,5 +38,5 @@ def allure_report(response, payload, method):
     except ValueError:  # If response.text is not JSON
         html_response = f"<pre>{response.text}</pre>"
 
-    allure.attach(html_response, name=f"⬅️ {method} {response.status_code} -  Response",
+    allure.attach(html_response, name=f"Response",
                   attachment_type=allure.attachment_type.HTML)

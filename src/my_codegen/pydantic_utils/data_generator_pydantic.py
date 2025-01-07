@@ -7,6 +7,8 @@ from faker import Faker
 from uuid import UUID, uuid4
 
 from my_codegen.pydantic_utils.pydantic_config import BaseConfigModel
+from pydantic import ConstrainedStr
+
 
 fake = Faker()
 
@@ -92,6 +94,16 @@ class RandomValueGenerator:
                 RandomValueGenerator.random_value(args[0], current_depth + 1, max_depth)
                 for _ in range(random.randint(1, 2))
             }
+
+        if isinstance(field_type, type) and issubclass(field_type, ConstrainedStr):
+            # Допустим, генерируем строку соблюдая min_length / max_length
+            min_len = getattr(field_type, 'min_length', 1) or 1
+            max_len = getattr(field_type, 'max_length', 20) or 20
+            if min_len > max_len:
+                # fallback если кто-то указал min_len>max_len
+                min_len, max_len = 1, 20
+            length = random.randint(min_len, max_len)
+            return "X" * length
 
         # 8) Enum
         if isinstance(field_type, type) and issubclass(field_type, Enum):
@@ -221,3 +233,5 @@ class GenerateData:
                     result[k] = v
             return result
         return instance
+
+
