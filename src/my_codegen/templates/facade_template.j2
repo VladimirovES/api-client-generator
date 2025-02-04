@@ -2,7 +2,7 @@
 from typing import Optional
 
 {% for imp in imports %}
-from endpoints.{{ imp.module_name }} import {{ imp.class_name }}
+from .endpoints.{{ imp.module_name }} import {{ imp.class_name }}
 {% endfor %}
 
 
