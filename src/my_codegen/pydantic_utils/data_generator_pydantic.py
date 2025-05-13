@@ -11,7 +11,7 @@ from faker import Faker
 
 from my_codegen.pydantic_utils.pydantic_config import BaseConfigModel
 
-from pydantic import Field, StringConstraints, RootModel
+from pydantic import Field, StringConstraints, RootModel, BaseModel
 
 fake = Faker()
 
@@ -100,7 +100,7 @@ class RandomValueGenerator:
             return field_type.model_construct(root=generated, _fields_set={"root"})
 
         # 10) Обрабатываем Pydantic-модель (ваш BaseConfigModel или BaseModel)
-        if isinstance(field_type, type) and issubclass(field_type, BaseConfigModel):
+        if isinstance(field_type, type) and (issubclass(field_type, BaseConfigModel) or issubclass(field_type, BaseModel)):
             if current_depth >= max_depth:
                 return None
             from_data = GenerateData(field_type, current_depth + 1, max_depth)
