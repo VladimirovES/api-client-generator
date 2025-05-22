@@ -18,6 +18,8 @@ import uuid
 from my_codegen.utils.base_url import BaseUrlSingleton
 from my_codegen.utils.logger import allure_report
 
+from my_codegen.utils.report_utils import Reporter
+
 load_dotenv()
 
 
@@ -25,8 +27,6 @@ class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, uuid.UUID):
             return str(obj)
-        # if isinstance(obj, datetime):
-        #     return obj.isoformat()
         if isinstance(obj, Enum):
             return obj.value
 
@@ -93,7 +93,7 @@ class RequestHandler:
             self, prepared_request: requests.PreparedRequest, path: str
     ) -> requests.Response:
         response = self.session.send(prepared_request)
-        with allure.step(f'<{prepared_request.method}> {path}'):
+        with Reporter.step(f'<{prepared_request.method}> {path}'):
             allure_report(
                 response=response,
                 payload=prepared_request.body

@@ -21,7 +21,10 @@ class ModelGenerator:
             "--use-title-as-name "
             "--use-schema-description "
             "--collapse-root-models "
-            "--target-python-version 3.9"
+            "--target-python-version 3.9 "
+            "--output-model-type pydantic_v2.BaseModel "
+            "--use-annotated"
+
         )
         run_command(model_cmd)
 

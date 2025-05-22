@@ -36,7 +36,7 @@ setuptools.setup(
         "pathspec==0.12.1",
         "platformdirs==4.3.6",
         "pluggy==1.5.0",
-        "pydantic==1.10.15",
+        "pydantic==2.10.5",
         "pydantic_core==2.27.2",
         "pyflakes==3.2.0",
         "pytest==8.3.4",
@@ -47,11 +47,14 @@ setuptools.setup(
         "six==1.17.0",
         "typing_extensions==4.12.2",
         "urllib3==2.3.0",
+        "testit-adapter-pytest==3.5.5.post530",
+        "testit-api-client==6.0.1.post530",
+        "testit-python-commons==3.5.5.post530"
     ],
     entry_points={
-      "console_scripts": [
-        "my-api-client=my_codegen.main:main",
-      ],
+        "console_scripts": [
+            "my-api-client=my_codegen.main:main",
+        ],
     },
     python_requires=">=3.7",
     classifiers=[

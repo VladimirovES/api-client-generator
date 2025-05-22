@@ -4,14 +4,14 @@ from typing import Any, Optional, List, Dict
 from my_codegen.http_clients.api_client import ApiClient
 from {{ models_import_path }} import {{ imports | join(', ') }}
 
-import allure
+from my_codegen.utils.report_utils import Reporter
 
 
 class {{ class_name }}(ApiClient):
     _service = "{{ service_name }}"
     {% for method in methods %}
 
-    @allure.step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
+    @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
     def {{ method.name }}(self,
                            {% for param in method.method_parameters %}
                            {{ param }},
@@ -57,15 +57,22 @@ class {{ class_name }}(ApiClient):
         {% endif %}
 
         {% if method.return_type != 'Any' %}
-            {% if method.return_type.startswith('List[') %}
-        return [{{ method.return_type[5:-1] }}(**item) for item in r_json] \
+        {% if method.return_type.startswith('List[') %}
+        {% set inner_type = get_inner_type(method.return_type) %}
+        {% if is_primitive_type(inner_type) %}
+        return [{{ inner_type }}(item) for item in r_json] \
             if status == HTTPStatus.{{ method.expected_status }} else r_json
-            {% else %}
+        {% else %}
+        return [{{ inner_type }}(**item) for item in r_json] \
+            if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% endif %}
+        {% elif is_primitive_type(method.return_type) %}
+        return {{ method.return_type }}(r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% else %}
         return {{ method.return_type }}(**r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
-
-            {% endif %}
+        {% endif %}
         {% else %}
         return r_json
-
         {% endif %}
     {% endfor %}
+

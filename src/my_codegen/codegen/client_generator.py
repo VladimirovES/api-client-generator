@@ -40,8 +40,9 @@ class ClientGenerator:
                 methods=eps,
                 imports=self.imports,
                 models_import_path=f"http_clients.{service_name}.models",
-                service_name=f"/{service_name}"
-
+                service_name=f"/{service_name}",
+                is_primitive_type=self.is_primitive_type,
+                get_inner_type=self.get_inner_type
             )
 
             filename = f"{class_name.lower()}_client.py"
@@ -107,3 +108,16 @@ class ClientGenerator:
                 return first_segment[1:-1]
             return first_segment
         return "sub_path"
+
+    @staticmethod
+    def is_primitive_type(type_str: str) -> bool:
+        """Проверяет, является ли тип примитивным"""
+        primitive_types = {'str', 'int', 'float', 'bool', 'Any'}
+        return type_str in primitive_types
+
+    @staticmethod
+    def get_inner_type(list_type: str) -> str:
+        """Извлекает внутренний тип из List[Type]"""
+        if list_type.startswith('List[') and list_type.endswith(']'):
+            return list_type[5:-1]
+        return list_type
