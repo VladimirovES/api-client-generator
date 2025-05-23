@@ -93,11 +93,6 @@ class RequestHandler:
             self, prepared_request: requests.PreparedRequest, path: str
     ) -> requests.Response:
         response = self.session.send(prepared_request)
-        with Reporter.step(f'<{prepared_request.method}> {path}'):
-            allure_report(
-                response=response,
-                payload=prepared_request.body
-            )
         return response
 
     def validate_response(
