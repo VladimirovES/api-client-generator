@@ -159,7 +159,7 @@ class ApiRequestError(AssertionError):
             else:
                 parsed_data = data
 
-            # ✨ ИСПРАВЛЕНО - теперь UUIDEncoder доступен
+
             formatted = json.dumps(parsed_data, indent=2, ensure_ascii=False, cls=UUIDEncoder)
 
             formatted = self._wrap_json_lines(formatted, max_line_length)
