@@ -5,6 +5,7 @@ import sys
 import allure
 import testit
 
+from http import HTTPStatus
 
 def configure_logging():
     logger = logging.getLogger()
