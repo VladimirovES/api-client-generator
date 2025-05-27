@@ -16,7 +16,7 @@ import json
 import uuid
 
 from my_codegen.utils.base_url import BaseUrlSingleton
-from my_codegen.utils.logger import allure_report
+from my_codegen.utils.logger import allure_report, ApiRequestError
 
 from my_codegen.utils.report_utils import Reporter
 
@@ -31,6 +31,8 @@ class UUIDEncoder(json.JSONEncoder):
             return obj.value
 
         return super().default(obj)
+
+
 
 
 class RequestHandler:
@@ -103,17 +105,7 @@ class RequestHandler:
             payload: Optional[Dict] = None,
     ):
         if expected_status and response.status_code != expected_status.value:
-            response_text = response.text[:2000]
-            payload_str = pprint.pformat(payload) if payload else ""
-            error_message = (
-                f"Expected status: {expected_status}, actual status: {response.status_code}.\n"
-                f"Method: {method}\n"
-                f"URL: {response.url}\n"
-                f"response: {response_text},"
-                f"headers: {response.request.headers}"
-                f"payload: {payload_str}\n"
-            )
-            raise AssertionError(error_message)
+            raise ApiRequestError(response, expected_status, method, payload) 
 
     def process_response(
             self, response: requests.Response
