@@ -1,11 +1,23 @@
 import json
 import logging
 import sys
+import uuid
+from enum import Enum
 
 import allure
 import testit
 
 from http import HTTPStatus
+
+
+class UUIDEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        if isinstance(obj, Enum):
+            return obj.value
+        return super().default(obj)
+
 
 def configure_logging():
     logger = logging.getLogger()
@@ -26,7 +38,6 @@ def allure_report(response, payload):
     Создает отчеты для Allure и Test IT одновременно
     """
 
-    # Подготавливаем данные запроса
     if payload is not None:
         try:
             if isinstance(payload, bytes):
@@ -46,7 +57,6 @@ def allure_report(response, payload):
         html_request = "Data is None"
         text_request = "Data is None"
 
-    # Подготавливаем данные ответа
     try:
         formatted_response = json.dumps(
             json.loads(response.text),
@@ -149,6 +159,7 @@ class ApiRequestError(AssertionError):
             else:
                 parsed_data = data
 
+            # ✨ ИСПРАВЛЕНО - теперь UUIDEncoder доступен
             formatted = json.dumps(parsed_data, indent=2, ensure_ascii=False, cls=UUIDEncoder)
 
             formatted = self._wrap_json_lines(formatted, max_line_length)
@@ -159,7 +170,6 @@ class ApiRequestError(AssertionError):
             return formatted
 
         except Exception:
-            # Fallback на обычное отображение
             return str(data)[:max_length]
 
     def _create_error_message(self):
