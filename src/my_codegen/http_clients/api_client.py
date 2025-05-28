@@ -151,7 +151,8 @@ class ApiClient:
         self._request_handler.validate_response(
             response, expected_status, method, payload or params
         )
-        logger.info(f'<{method}> {url}')
+        logger.info(f'{response.status_code} | {method} | {formatted_path}')
+
         return self._request_handler.process_response(response)
 
     def _get(
