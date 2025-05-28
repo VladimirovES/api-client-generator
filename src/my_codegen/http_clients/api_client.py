@@ -16,7 +16,7 @@ import json
 import uuid
 
 from my_codegen.utils.base_url import BaseUrlSingleton
-from my_codegen.utils.logger import allure_report, ApiRequestError
+from my_codegen.utils.logger import allure_report, ApiRequestError, logger
 
 from my_codegen.utils.report_utils import Reporter
 
@@ -31,8 +31,6 @@ class UUIDEncoder(json.JSONEncoder):
             return obj.value
 
         return super().default(obj)
-
-
 
 
 class RequestHandler:
@@ -105,7 +103,7 @@ class RequestHandler:
             payload: Optional[Dict] = None,
     ):
         if expected_status and response.status_code != expected_status.value:
-            raise ApiRequestError(response, expected_status, method, payload) 
+            raise ApiRequestError(response, expected_status, method, payload)
 
     def process_response(
             self, response: requests.Response
@@ -153,6 +151,7 @@ class ApiClient:
         self._request_handler.validate_response(
             response, expected_status, method, payload or params
         )
+        logger.info(f'<{method}> {url}')
         return self._request_handler.process_response(response)
 
     def _get(
