@@ -4,13 +4,13 @@ from typing import Any, Optional, List, Dict
 from my_codegen.http_clients.api_client import ApiClient
 from {{ models_import_path }} import {{ imports | join(', ') }}
 
-import allure
+from my_codegen.utils.report_utils import Reporter
 
 class {{ class_name }}(ApiClient):
     _service = "{{ service_name }}"
     {% for method in methods %}
 
-    @allure.step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
+    @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
     def {{ method.name }}(self,
                            {% for param in method.method_parameters %}
                            {{ param }},
