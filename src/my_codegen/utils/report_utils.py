@@ -4,6 +4,7 @@ from functools import wraps
 
 import tempfile
 import os
+from my_codegen.utils.logger import logger
 
 
 class Reporter:
@@ -87,6 +88,7 @@ class Reporter:
 
         class DualStepContext:
             def __enter__(self):
+                logger.info(f"{name}")
                 allure_step.__enter__()
                 testit_step.__enter__()
                 return self
