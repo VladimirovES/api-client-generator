@@ -19,16 +19,16 @@ class Reporter:
             def wrapper(*args, **kwargs):
                 logger.info("="* 100)
                 logger.info(f"Начало теста: '{title_text}'")
-                logger.info("_"* 100)
+                logger.info("-"* 100)
 
                 try:
                     result = func(*args, **kwargs)
-                    logger.info("_" * 100)
+                    logger.info("-" * 100)
                     logger.info(f"Тест успешно завершен: '{title_text}'")
                     logger.info("=" * 100)
                     return result
                 except Exception as e:
-                    logger.info("_" * 100)
+                    logger.info("-" * 100)
                     logger.error(f"Тест провален: '{title_text}' - {str(e)}")
                     logger.info("=" * 100)
                     raise
