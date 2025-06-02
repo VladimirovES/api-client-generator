@@ -35,7 +35,7 @@ class Expect:
         success_message = f'"{self._name}" {message}'
 
     def _check(self, condition: bool, message: str, expected: Any = None):
-        message_step = f"Check {self._name} {message}"
+        message_step = f'Check: "{self._name}" {message}'
 
         logger.info(f"{message_step}")
         with Reporter.step(f"{message_step}"):
