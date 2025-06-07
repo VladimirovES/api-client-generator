@@ -6,48 +6,56 @@ from my_codegen.codegen.data_models import Endpoint, Parameter
 
 
 class SwaggerProcessor:
-    def __init__(self, swagger: Dict[str, Any]):
-        self.swagger = swagger
+    def __init__(self, swagger_spec: SwaggerSpec):
+        self.swagger_spec = swagger_spec
 
     def extract_endpoints(self) -> List[Endpoint]:
-        endpoints: List[Endpoint] = []
-        paths = self.swagger.get('paths', {})
+        endpoints = []
 
-        for path, methods in paths.items():
-            for http_method, details in methods.items():
-                tags = details.get('tags', ['default'])
-                for tag in tags:
-                    method_name = self._determine_method_name(http_method, path, details)
-                    description = details.get('description', details.get('summary', ''))
+        for path_str, path_obj in self.swagger_spec.paths.items():
+            # Получаем все HTTP методы из path_obj
+            methods = {
+                'get': path_obj.get,
+                'post': path_obj.post,
+                'put': path_obj.put,
+                'patch': path_obj.patch,
+                'delete': path_obj.delete
+            }
 
-                    parameters = details.get('parameters', [])
-                    path_params = self._extract_parameters(parameters, 'path')
-                    query_params = self._extract_parameters(parameters, 'query')
+            for http_method, operation in methods.items():
+                if operation is None:
+                    continue
 
-                    request_body = details.get('requestBody', {})
-                    payload_type = self._extract_payload_type(request_body)
+                for tag in operation.tags or ['default']:
+                    endpoint = self._create_endpoint(
+                        path_str, http_method, operation, tag
+                    )
+                    endpoints.append(endpoint)
 
-                    responses = details.get('responses', {})
-                    expected_status, return_type = self._extract_response_info(responses)
-
-                    endpoints.append(Endpoint(
-                        tag=tag,
-                        name=method_name,
-                        http_method=http_method.upper(),
-                        path=path,
-                        path_params=path_params,
-                        query_params=query_params,
-                        payload_type=payload_type,
-                        expected_status=expected_status,
-                        return_type=return_type,
-                        description=description
-                    ))
         return endpoints
 
+    def _create_endpoint(self, path: str, http_method: str,
+                         operation: SwaggerOperation, tag: str) -> Endpoint:
+
+        expected_status, return_type = self._extract_response_info(operation.responses)
+
+        return Endpoint(
+            tag=tag,
+            name=self._determine_method_name(http_method, path, operation),
+            http_method=http_method.upper(),
+            path=path,
+            path_params=self._extract_parameters(operation.parameters, 'path'),
+            query_params=self._extract_parameters(operation.parameters, 'query'),
+            payload_type=self._extract_payload_type(operation.requestBody),
+            expected_status=expected_status,
+            return_type=return_type,
+            description=operation.description or operation.summary or ""
+        )
+
     def extract_imports(self) -> List[str]:
-        components = self.swagger.get('components', {})
-        schemas = components.get('schemas', {})
-        return [self._remove_underscores(name) for name in schemas.keys()]
+        if not self.swagger_spec.components:
+            return []
+        return list(self.swagger_spec.components.schemas.keys())
 
     # -- private helpers --
     @staticmethod

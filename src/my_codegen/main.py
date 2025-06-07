@@ -36,7 +36,7 @@ def main():
     loader.download_swagger(url=swagger_url)
     logger.info("Swagger file downloaded. Now parsing the local swagger.json...")
     loader.load()
-    swagger_dict = loader.swagger
+    swagger_spec = loader.swagger_spec
     service_name = loader.get_service_name()
     logger.info(f"Service identified as: {service_name}")
 
@@ -59,7 +59,7 @@ def main():
 
     # 5. Parse the Swagger to extract endpoints and imports
     logger.info("Extracting endpoints and imports from swagger.")
-    processor = SwaggerProcessor(swagger_dict)
+    processor = SwaggerProcessor(swagger_spec)
     endpoints = processor.extract_endpoints()
     imports = processor.extract_imports()
     logger.info(f"Found {len(endpoints)} endpoints and {len(imports)} imports.")
