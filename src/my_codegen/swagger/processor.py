@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from http import HTTPStatus
 
 from my_codegen.codegen.data_models import Endpoint, Parameter
