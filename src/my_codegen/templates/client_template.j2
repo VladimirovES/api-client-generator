@@ -2,7 +2,7 @@
 from http import HTTPStatus
 from typing import Any, Optional, List, Dict
 from my_codegen.http_clients.api_client import ApiClient
-models_import_path = f"http_clients.{module_name}.models"
+from {{ models_import_path }} import {{ imports | join(', ') }}
 
 from my_codegen.utils.report_utils import Reporter
 
