@@ -6,7 +6,8 @@ from my_codegen.codegen.data_models import Endpoint, Parameter
 from my_codegen.swagger.swagger_models import (SwaggerSpec, 
                                                SwaggerOperation, 
                                                SwaggerRequestBody, 
-                                               SwaggerResponse)
+                                               SwaggerResponse,
+                                               SwaggerParameter)
 
 
 class SwaggerProcessor:
@@ -17,7 +18,6 @@ class SwaggerProcessor:
         endpoints = []
 
         for path_str, path_obj in self.swagger_spec.paths.items():
-            # Получаем все HTTP методы из path_obj
             methods = {
                 'get': path_obj.get,
                 'post': path_obj.post,
@@ -59,7 +59,7 @@ class SwaggerProcessor:
     def extract_imports(self) -> List[str]:
         if not self.swagger_spec.components:
             return []
-        return list(self.swagger_spec.components.schemas.keys())
+        return [self._remove_underscores(name) for name in self.swagger_spec.components.schemas.keys()]
 
     # -- private helpers --
     @staticmethod
@@ -136,27 +136,24 @@ class SwaggerProcessor:
         }
         return type_mapping.get(openapi_type, 'Any')
 
-    def _extract_parameters(self, parameters: List[Dict[str, Any]], location: str) -> List[Parameter]:
+    def _extract_parameters(self, parameters: List[SwaggerParameter], location: str) -> List[Parameter]:
         result = []
         for param in parameters:
-            if param.get('in') == location:
-                schema = param.get('schema', {})
+            if param.in_ == location:  
                 result.append(
                     Parameter(
-                        name=param.get('name'),
-                        type=self._map_openapi_type_to_python(schema),
-                        required=param.get('required', False)
+                        name=param.name,
+                        type=self._map_openapi_type_to_python(param.schema_ or {}),
+                        required=param.required
                     )
                 )
         return result
 
-    def _determine_method_name(self, http_method: str, path: str, details: Dict[str, Any]) -> str:
-        summary = details.get('summary', '')
-        operation_id = details.get('operationId', '')
-        if summary:
-            raw_name = summary
-        elif operation_id:
-            raw_name = operation_id
+    def _determine_method_name(self, http_method: str, path: str, operation: SwaggerOperation) -> str:
+        if operation.summary:
+            raw_name = operation.summary
+        elif operation.operationId:
+            raw_name = operation.operationId
         else:
             raw_name = f"{http_method}_{path.strip('/').replace('/', '_').replace('{', '').replace('}', '')}"
         return re.sub(r'[^a-zA-Z0-9]+', '_', raw_name.strip().lower()).strip('_')
