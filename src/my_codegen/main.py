@@ -38,6 +38,7 @@ def main():
     loader.load()
     swagger_spec = loader.swagger_spec
     module_name = loader.get_module_name()
+    service_path = loader.get_service_path()
     logger.info(f"Service identified as: {module_name}")
 
     # 3. Create output directories
@@ -69,11 +70,9 @@ def main():
     client_gen = ClientGenerator(
         endpoints=endpoints,
         imports=imports,
-        template_name='client_template.j2',
-        module_name=module_name,  
-        service_path=service_path
+        template_name='client_template.j2'
     )
-    file_to_class = client_gen.generate_clients(endpoints_dir, service_name)
+    file_to_class = client_gen.generate_clients(endpoints_dir, module_name, service_path)
     logger.info(f"Generated {len(file_to_class)} client files.")
 
     # 7. Auto-format (autoflake, black)
