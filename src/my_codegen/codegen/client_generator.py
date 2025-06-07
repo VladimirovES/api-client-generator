@@ -19,7 +19,7 @@ class ClientGenerator:
         )
         self.template = self.env.get_template(self.template_name)
 
-    def generate_clients(self, output_dir: str, service_name: str) -> Dict[str, str]:
+    def generate_clients(self, output_dir: str, module_name: str, service_path: str) -> Dict[str, str]:
         """
         Проходит по всем эндпоинтам, группирует по тегам, рендерит файлы.
         Возвращает { filename: className } для фасада.
@@ -39,8 +39,8 @@ class ClientGenerator:
                 sub_paths=sub_paths,
                 methods=eps,
                 imports=self.imports,
-                models_import_path=f"http_clients.{module_name}.models",  # изменилось
-                service_path=service_path,  
+                models_import_path=f"http_clients.{module_name}.models",
+                service_path=service_path,
                 is_primitive_type=self.is_primitive_type,
                 get_inner_type=self.get_inner_type
             )

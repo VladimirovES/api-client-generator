@@ -10,6 +10,7 @@ from my_codegen.codegen.model_generator import ModelGenerator
 from my_codegen.swagger.loader import SwaggerLoader
 from my_codegen.swagger.processor import SwaggerProcessor
 from my_codegen.utils.logger import logger
+
 load_dotenv()
 
 
@@ -82,7 +83,7 @@ def main():
 
     # 8. Generate local facade -> http_clients/<service_name>/facade.py
     facade_gen = FacadeGenerator(
-        facade_class_name=f"{service_name.capitalize()}Api",
+        facade_class_name=f"{module_name.capitalize()}Api",
         template_name='facade_template.j2'
     )
     facade_filename = "facade.py"
@@ -100,7 +101,7 @@ def main():
     logger.info("Global facade (api_facade.py) generated successfully.")
 
     logger.info(
-        f"Clients (endpoints/*.py), models, and facade for service '{service_name}' have been created at '{service_dir}'.")
+        f"Clients (endpoints/*.py), models, and facade for service '{module_name}' have been created at '{service_dir}'.")
 
 
 if __name__ == "__main__":
