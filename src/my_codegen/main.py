@@ -37,12 +37,12 @@ def main():
     logger.info("Swagger file downloaded. Now parsing the local swagger.json...")
     loader.load()
     swagger_spec = loader.swagger_spec
-    service_name = loader.get_service_name()
-    logger.info(f"Service identified as: {service_name}")
+    module_name = loader.get_module_name()
+    logger.info(f"Service identified as: {module_name}")
 
     # 3. Create output directories
     base_output_dir = 'http_clients'
-    service_dir = os.path.join(base_output_dir, service_name)
+    service_dir = os.path.join(base_output_dir, module_name)
     endpoints_dir = os.path.join(service_dir, "endpoints")
     os.makedirs(service_dir, exist_ok=True)
     os.makedirs(endpoints_dir, exist_ok=True)
@@ -69,7 +69,9 @@ def main():
     client_gen = ClientGenerator(
         endpoints=endpoints,
         imports=imports,
-        template_name='client_template.j2'
+        template_name='client_template.j2',
+        module_name=module_name,  
+        service_path=service_path
     )
     file_to_class = client_gen.generate_clients(endpoints_dir, service_name)
     logger.info(f"Generated {len(file_to_class)} client files.")

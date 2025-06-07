@@ -39,8 +39,8 @@ class ClientGenerator:
                 sub_paths=sub_paths,
                 methods=eps,
                 imports=self.imports,
-                models_import_path=f"http_clients.{service_name}.models",
-                service_name=f"/{service_name}",
+                models_import_path=f"http_clients.{module_name}.models",  # изменилось
+                service_path=service_path,  
                 is_primitive_type=self.is_primitive_type,
                 get_inner_type=self.get_inner_type
             )

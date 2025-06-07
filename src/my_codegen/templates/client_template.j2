@@ -2,12 +2,12 @@
 from http import HTTPStatus
 from typing import Any, Optional, List, Dict
 from my_codegen.http_clients.api_client import ApiClient
-from {{ models_import_path }} import {{ imports | join(', ') }}
+models_import_path = f"http_clients.{module_name}.models"
 
 from my_codegen.utils.report_utils import Reporter
 
 class {{ class_name }}(ApiClient):
-    _service = "/{{ service_name }}"
+    _service = "{{ service_path }}"
 
     {% for method in methods %}
 

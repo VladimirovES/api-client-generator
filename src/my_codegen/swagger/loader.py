@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Any
 from my_codegen.swagger.swagger_models import SwaggerSpec
 
 
+
 class SwaggerLoader:
     def __init__(self, file_path: str):
         self.file_path = file_path
@@ -22,12 +23,17 @@ class SwaggerLoader:
         except ValidationError as e:
             raise ValueError(f"Invalid swagger format: {e}")
 
-    def get_service_name(self) -> str:
+    def get_module_name(self) -> str:
+        """Имя папки/модуля - только из title"""
+        title = self.swagger_spec.info.title
+        normalized = re.sub(r'[^a-zA-Z0-9]+', '_', title.strip())
+        return normalized.lower().strip('_')
+
+    def get_service_path(self) -> str:
+        """Путь сервиса для URL - из servers"""
         if self.swagger_spec.servers:
-            url = self.swagger_spec.servers[0].url
-            service_name = url.lstrip('/')
-            if service_name:
-                return service_name.lower().replace('-', '_')
+            return self.swagger_spec.servers[0].url
+        return "/"
 
     def download_swagger(self, url: str):
         swagger_cmd = f"curl {url} -o ./swagger.json"
