@@ -1,11 +1,13 @@
 import json
 from typing import Dict, Any
+import re
 
 from my_codegen.utils.shell import run_command
 
 from typing import Dict, List, Optional, Any
 
 from my_codegen.swagger.swagger_models import SwaggerSpec
+
 
 class SwaggerLoader:
     def __init__(self, file_path: str):
