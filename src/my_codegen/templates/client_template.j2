@@ -7,7 +7,8 @@ from {{ models_import_path }} import {{ imports | join(', ') }}
 from my_codegen.utils.report_utils import Reporter
 
 class {{ class_name }}(ApiClient):
-    _service = "{{ service_name }}"
+    _service = "/{{ service_name }}"
+
     {% for method in methods %}
 
     @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")

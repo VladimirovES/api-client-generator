@@ -23,9 +23,11 @@ class SwaggerLoader:
             raise ValueError(f"Invalid swagger format: {e}")
 
     def get_service_name(self) -> str:
-        title = self.swagger_spec.info.title
-        normalized = re.sub(r'[^a-zA-Z0-9]+', '_', title.strip())
-        return normalized.lower().strip('_')
+        if self.swagger_spec.servers:
+            url = self.swagger_spec.servers[0].url
+            service_name = url.lstrip('/')
+            if service_name:
+                return service_name.lower().replace('-', '_')
 
     def download_swagger(self, url: str):
         swagger_cmd = f"curl {url} -o ./swagger.json"

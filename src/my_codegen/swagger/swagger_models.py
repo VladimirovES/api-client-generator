@@ -47,7 +47,13 @@ class SwaggerComponents(BaseModel):
     schemas: Dict[str, Any] = {}
 
 
+class SwaggerServer(BaseModel):
+    url: str
+    description: Optional[str] = None
+    
+
 class SwaggerSpec(BaseModel):
+    servers: List[SwaggerServer] = []
     openapi: Optional[str] = None
     swagger: Optional[str] = None
     info: SwaggerInfo
