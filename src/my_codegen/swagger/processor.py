@@ -6,7 +6,6 @@ from my_codegen.codegen.data_models import Endpoint, Parameter
 from my_codegen.swagger.swagger_models import SwaggerSpec
 
 
-
 class SwaggerProcessor:
     def __init__(self, swagger_spec: SwaggerSpec):
         self.swagger_spec = swagger_spec

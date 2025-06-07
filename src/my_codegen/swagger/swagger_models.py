@@ -1,3 +1,7 @@
+from pydantic import BaseModel, Field
+from typing import Dict, List, Optional, Any
+
+
 class SwaggerInfo(BaseModel):
     title: str
     version: str = "1.0.0"

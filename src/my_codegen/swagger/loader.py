@@ -3,7 +3,6 @@ from typing import Dict, Any
 
 from my_codegen.utils.shell import run_command
 
-from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
 
 from my_codegen.swagger.swagger_models import SwaggerSpec
