@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 from http import HTTPStatus
 
 from my_codegen.codegen.data_models import Endpoint, Parameter
-from my_codegen.swagger.swagger_models import SwaggerSpec
+from my_codegen.swagger.swagger_models import SwaggerSpec, SwaggerOperation
 
 
 class SwaggerProcessor:
