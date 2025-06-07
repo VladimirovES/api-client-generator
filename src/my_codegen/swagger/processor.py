@@ -73,23 +73,28 @@ class SwaggerProcessor:
                 cleaned_segments.append(seg.capitalize())
         return ''.join(cleaned_segments)
 
-    def _extract_payload_type(self, request_body: Dict[str, Any]) -> str:
+    def _extract_payload_type(self, request_body: Optional[SwaggerRequestBody]) -> str:
         if not request_body:
             return None
-        content = request_body.get('content', {})
+
+        content = request_body.content
+
         for ctype_key in ('application/json', 'multipart/form-data'):
             if ctype_key in content:
                 schema = content[ctype_key].get('schema', {})
                 return self._map_openapi_type_to_python(schema)
         return None
 
-    def _extract_response_info(self, responses: Dict[str, Any]) -> (str, str):
+    def _extract_response_info(self, responses: Dict[str, SwaggerResponse]) -> tuple[str, str]:
         expected_status = 'OK'
         return_type = 'Any'
+
         for status_code, response_obj in responses.items():
             if status_code.startswith('2'):
                 expected_status = self._get_http_status_enum(status_code)
-                resp_content = response_obj.get('content', {})
+
+                resp_content = response_obj.content
+
                 if 'application/json' in resp_content:
                     schema = resp_content['application/json'].get('schema', {})
                     return_type = self._map_openapi_type_to_python(schema)
@@ -98,6 +103,7 @@ class SwaggerProcessor:
                 elif 'text/plain' in resp_content:
                     return_type = 'str'
                 break
+
         return (expected_status, return_type)
 
     @staticmethod
