@@ -6,82 +6,82 @@ from {{ models_import_path }} import {{ imports | join(', ') }}
 from my_codegen.utils.report_utils import Reporter
 
 class {{ class_name }}(ApiClient):
-   _service = "{{ service_path }}"
+    _service = "{{ service_path }}"
 
 {% for method in methods %}
-   @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
-   def {{ method.name }}(self,
-       {% for param in method.path_params %}
-       {{ param.name }}: {{ param.type }},
-       {% endfor %}
-       {% for param in method.query_params if param.required %}
-       {{ param.name }}: {{ param.type }},
-       {% endfor %}
-       {% for param in method.query_params if not param.required %}
-       {{ param.name }}: {{ param.type }} = None,
-       {% endfor %}
-       {% if method.http_method == 'GET' %}
-       params: Optional[Dict[str, Any]] = None,
-       {% else %}
-       {% if method.payload_type %}
-       payload: {{ method.payload_type }},
-       {% else %}
-       payload: Optional[Any] = None,
-       {% endif %}
-       {% endif %}
-       status: HTTPStatus = HTTPStatus.{{ method.expected_status }}) -> {{ method.return_type }}:
+    @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
+    def {{ method.name }}(self,
+        {% for param in method.path_params %}
+        {{ param.name }}: {{ param.type }},
+        {% endfor %}
+        {% for param in method.query_params if param.required %}
+        {{ param.name }}: {{ param.type }},
+        {% endfor %}
+        {% for param in method.query_params if not param.required %}
+        {{ param.name }}: Optional[{{ param.type }}] = None,
+        {% endfor %}
+        {% if method.http_method == 'GET' %}
+        params: Optional[Dict[str, Any]] = None,
+        {% else %}
+        {% if method.payload_type %}
+        payload: {{ method.payload_type }},
+        {% else %}
+        payload: Optional[Any] = None,
+        {% endif %}
+        {% endif %}
+        status: HTTPStatus = HTTPStatus.{{ method.expected_status }}) -> {{ method.return_type }}:
 
-       path = f"{{ method.path }}"
+        path = f"{{ method.path }}"
 
-       {% if method.http_method == 'GET' %}
-       r_json = self._get(
-           path=self._service + path,
-           params={
-               {% for param in method.query_params %}
-               '{{ param.name }}': {{ param.name }},
-               {% endfor %}
-               **(params or {})
-           },
-           expected_status=status
-       )
-       {% elif method.http_method in ['POST', 'PUT', 'PATCH', 'DELETE'] %}
-       {% if method.payload_type and method.payload_type.startswith('List[') %}
-       r_json = self._{{ method.http_method.lower() }}(
-           path=self._service + path,
-           payload=[item.dict() for item in payload] if payload else None,
-           expected_status=status
-       )
-       {% elif method.payload_type and method.payload_type != 'Any' %}
-       r_json = self._{{ method.http_method.lower() }}(
-           path=self._service + path,
-           payload=payload.dict() if payload else None,
-           expected_status=status
-       )
-       {% else %}
-       r_json = self._{{ method.http_method.lower() }}(
-           path=self._service + path,
-           expected_status=status
-       )
-       {% endif %}
-       {% endif %}
+        {% if method.http_method == 'GET' %}
+        r_json = self._get(
+            path=self._service + path,
+            params={
+                {% for param in method.query_params %}
+                '{{ param.name }}': {{ param.name }},
+                {% endfor %}
+                **(params or {})
+            },
+            expected_status=status
+        )
+        {% elif method.http_method in ['POST', 'PUT', 'PATCH', 'DELETE'] %}
+        {% if method.payload_type and method.payload_type.startswith('List[') %}
+        r_json = self._{{ method.http_method.lower() }}(
+            path=self._service + path,
+            payload=[item.dict() for item in payload] if payload else None,
+            expected_status=status
+        )
+        {% elif method.payload_type and method.payload_type != 'Any' %}
+        r_json = self._{{ method.http_method.lower() }}(
+            path=self._service + path,
+            payload=payload.dict() if payload else None,
+            expected_status=status
+        )
+        {% else %}
+        r_json = self._{{ method.http_method.lower() }}(
+            path=self._service + path,
+            expected_status=status
+        )
+        {% endif %}
+        {% endif %}
 
-       {% if method.return_type != 'Any' %}
-       {% if method.return_type.startswith('List[') %}
-       {% set inner_type = get_inner_type(method.return_type) %}
-       {% if is_primitive_type(inner_type) %}
-       return [{{ inner_type }}(item) for item in r_json] \
-           if status == HTTPStatus.{{ method.expected_status }} else r_json
-       {% else %}
-       return [{{ inner_type }}(**item) for item in r_json] \
-           if status == HTTPStatus.{{ method.expected_status }} else r_json
-       {% endif %}
-       {% elif is_primitive_type(method.return_type) %}
-       return {{ method.return_type }}(r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
-       {% else %}
-       return {{ method.return_type }}(**r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
-       {% endif %}
-       {% else %}
-       return r_json
-       {% endif %}
+        {% if method.return_type != 'Any' %}
+        {% if method.return_type.startswith('List[') %}
+        {% set inner_type = get_inner_type(method.return_type) %}
+        {% if is_primitive_type(inner_type) %}
+        return [{{ inner_type }}(item) for item in r_json] \
+            if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% else %}
+        return [{{ inner_type }}(**item) for item in r_json] \
+            if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% endif %}
+        {% elif is_primitive_type(method.return_type) %}
+        return {{ method.return_type }}(r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% else %}
+        return {{ method.return_type }}(**r_json) if status == HTTPStatus.{{ method.expected_status }} else r_json
+        {% endif %}
+        {% else %}
+        return r_json
+        {% endif %}
 
 {% endfor %}
