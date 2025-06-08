@@ -82,8 +82,9 @@ def main():
     logger.info("Auto-format completed.")
 
     # 8. Generate local facade -> http_clients/<service_name>/facade.py
+    facade_class_name = ''.join(word.capitalize() for word in module_name.split('_')) + 'Api'
     facade_gen = FacadeGenerator(
-        facade_class_name=f"{module_name.replace('_', '').capitalize()}Api",  # убираем _
+        facade_class_name=facade_class_name,
         template_name='facade_template.j2'
     )
     facade_filename = "facade.py"
