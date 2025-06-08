@@ -3,57 +3,76 @@ from http import HTTPStatus
 from typing import Any, Optional, List, Dict
 from my_codegen.http_clients.api_client import ApiClient
 from {{ models_import_path }} import {{ imports | join(', ') }}
-
 from my_codegen.utils.report_utils import Reporter
 
 class {{ class_name }}(ApiClient):
     _service = "{{ service_path }}"
 
-    {% for method in methods %}
-
+{% for method in methods %}
     @Reporter.general_step("{{ method.description | replace('\n', '\n' + docstring_indent) }}")
     def {{ method.name }}(self,
-                           {% for param in method.method_parameters %}
-                           {{ param }},
-                           {% endfor %}
-                           {% if method.http_method == 'GET' %}
-                           params: Optional[Dict[str, Any]] = None,
-                           {% else %}
-                             {% if method.payload_type %}
-                           payload: {{ method.payload_type }},
-                             {% else %}
-                           payload: Optional[Any] = None,
-                             {% endif %}
-                           {% endif %}
-                           status: HTTPStatus = HTTPStatus.{{ method.expected_status }}) -> {{ method.return_type }}:
-
-        path =f"{{ method.path }}"
+        {% for param in method.path_params %}
+        {{ param.name }}: {{ param.type }},
+        {% endfor %}
+        {% for param in method.query_params %}
+        {{ param.name }}: {{ param.type }}{% if not param.required %} = None{% endif %},
+        {% endfor %}
         {% if method.http_method == 'GET' %}
+        {% if method.query_params %}
+        extra_params: Optional[Dict[str, Any]] = None,
+        {% else %}
+        params: Optional[Dict[str, Any]] = None,
+        {% endif %}
+        {% else %}
+        {% if method.payload_type %}
+        payload: {{ method.payload_type }},
+        {% else %}
+        payload: Optional[Any] = None,
+        {% endif %}
+        {% endif %}
+        status: HTTPStatus = HTTPStatus.{{ method.expected_status }}) -> {{ method.return_type }}:
+
+        path = f"{{ method.path }}"
+
+        {% if method.http_method == 'GET' %}
+        # Объединяем параметры
+        all_params = {}
+        {% for param in method.query_params %}
+        if {{ param.name }} is not None:
+            all_params['{{ param.name }}'] = {{ param.name }}
+        {% endfor %}
+        {% if method.query_params %}
+        if extra_params:
+            all_params.update(extra_params)
+        {% else %}
+        if params:
+            all_params.update(params)
+        {% endif %}
+
         r_json = self._get(
             path=self._service + path,
-            params=params,
+            params=all_params if all_params else None,
             expected_status=status
         )
         {% elif method.http_method in ['POST', 'PUT', 'PATCH', 'DELETE'] %}
-            {% if method.payload_type and method.payload_type.startswith('List[') %}
+        {% if method.payload_type and method.payload_type.startswith('List[') %}
         r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             payload=[item.dict() for item in payload],
             expected_status=status
         )
-            {% elif method.payload_type and method.payload_type != 'Any' %}
+        {% elif method.payload_type and method.payload_type != 'Any' %}
         r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             payload=payload.dict() if payload else None,
             expected_status=status
         )
-            {% else %}
+        {% else %}
         r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
             expected_status=status
         )
-
-            {% endif %}
+        {% endif %}
         {% endif %}
 
         {% if method.return_type != 'Any' %}
@@ -74,5 +93,5 @@ class {{ class_name }}(ApiClient):
         {% else %}
         return r_json
         {% endif %}
-    {% endfor %}
 
+{% endfor %}
