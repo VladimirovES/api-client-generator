@@ -83,7 +83,7 @@ def main():
 
     # 8. Generate local facade -> http_clients/<service_name>/facade.py
     facade_gen = FacadeGenerator(
-        facade_class_name=f"{module_name.capitalize()}Api",
+        facade_class_name=f"{module_name.replace('_', '').capitalize()}Api",  # убираем _
         template_name='facade_template.j2'
     )
     facade_filename = "facade.py"
