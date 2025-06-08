@@ -20,29 +20,21 @@ class ClientGenerator:
         self.template = self.env.get_template(self.template_name)
 
     def generate_clients(self, output_dir: str, module_name: str, service_path: str) -> Dict[str, str]:
-        """
-        Проходит по всем эндпоинтам, группирует по тегам, рендерит файлы.
-        Возвращает { filename: className } для фасада.
-        """
         os.makedirs(output_dir, exist_ok=True)
         grouped = self._group_endpoints_by_tag(self.endpoints)
         file_to_class = {}
 
         for tag, eps in grouped.items():
             class_name = self.class_name_from_tag(tag)
-            base_path = self._determine_base_path(eps)
-            sub_paths = self._collect_sub_paths(eps, base_path)
+
+            method_contexts = [MethodContext.from_endpoint(ep) for ep in eps]
 
             rendered = self.template.render(
                 class_name=class_name,
-                base_path=base_path,
-                sub_paths=sub_paths,
-                methods=eps,
-                imports=self.imports,
-                models_import_path=f"http_clients.{module_name}.models",
                 service_path=service_path,
-                is_primitive_type=self.is_primitive_type,
-                get_inner_type=self.get_inner_type
+                methods=method_contexts,
+                models_import_path=f"http_clients.{module_name}.models",
+                imports=self.imports
             )
 
             filename = f"{class_name.lower()}_client.py"
