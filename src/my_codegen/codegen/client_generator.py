@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 from jinja2 import Environment, PackageLoader
-from my_codegen.codegen.data_models import Endpoint, SubPath
+from my_codegen.codegen.data_models import Endpoint, SubPath, MethodContext
 
 import re
 
