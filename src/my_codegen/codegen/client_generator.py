@@ -1,115 +1,82 @@
 import os
+import re
 from typing import Dict, List
 from jinja2 import Environment, PackageLoader
-from my_codegen.codegen.data_models import Endpoint, SubPath, MethodContext
-
-import re
+from my_codegen.codegen.data_models import Endpoint, MethodContext
 
 
 class ClientGenerator:
     def __init__(self, endpoints: List[Endpoint], imports: List[str], template_name: str):
         self.endpoints = endpoints
         self.imports = imports
-        self.template_name = template_name
+        self.template = self._load_template(template_name)
 
-        self.env = Environment(
+    def _load_template(self, template_name: str):
+        """Загружает Jinja2 шаблон"""
+        env = Environment(
             loader=PackageLoader("my_codegen", "templates"),
             trim_blocks=True,
             lstrip_blocks=True
         )
-        self.template = self.env.get_template(self.template_name)
+        return env.get_template(template_name)
 
     def generate_clients(self, output_dir: str, module_name: str, service_path: str) -> Dict[str, str]:
+        """Генерирует клиентские файлы, группируя endpoints по тегам"""
         os.makedirs(output_dir, exist_ok=True)
-        grouped = self._group_endpoints_by_tag(self.endpoints)
+
+        grouped_endpoints = self._group_endpoints_by_tag()
         file_to_class = {}
 
-        for tag, eps in grouped.items():
-            class_name = self.class_name_from_tag(tag)
+        for tag, endpoints in grouped_endpoints.items():
+            class_name = self._tag_to_class_name(tag)
+            file_name = f"{class_name.lower()}_client.py"
 
-            method_contexts = [MethodContext.from_endpoint(ep) for ep in eps]
-
-            rendered = self.template.render(
-                class_name=class_name,
-                service_path=service_path,
-                methods=method_contexts,
-                models_import_path=f"http_clients.{module_name}.models",
-                imports=self.imports
+            self._generate_client_file(
+                endpoints, class_name, file_name,
+                output_dir, module_name, service_path
             )
 
-            filename = f"{class_name.lower()}_client.py"
-            full_path = os.path.join(output_dir, filename)
-            with open(full_path, "w", encoding="utf-8") as f:
-                f.write(rendered)
-
-            file_to_class[filename] = class_name
+            file_to_class[file_name] = class_name
 
         return file_to_class
 
-    @staticmethod
-    def class_name_from_tag(tag: str) -> str:
-        """Простая логика: заменяем '-' -> '_', split и склеиваем в CamelCase."""
-        tag = tag.replace('-', '_')
-        parts = re.split(r'[\s_]+', tag)
-        return ''.join(word.capitalize() for word in parts if word)
-
-    @staticmethod
-    def _group_endpoints_by_tag(endpoints: List[Endpoint]) -> Dict[str, List[Endpoint]]:
+    def _group_endpoints_by_tag(self) -> Dict[str, List[Endpoint]]:
+        """Группирует endpoints по тегам"""
         grouped = {}
-        for ep in endpoints:
-            grouped.setdefault(ep.tag, []).append(ep)
+        for endpoint in self.endpoints:
+            grouped.setdefault(endpoint.tag, []).append(endpoint)
         return grouped
 
-    def _determine_base_path(self, eps: List[Endpoint]) -> str:
-        if not eps:
-            return "/"
-        paths = [ep.path for ep in eps]
-        split_paths = [p.strip("/").split("/") for p in paths]
-        common = split_paths[0]
-        for sp in split_paths[1:]:
-            min_length = min(len(common), len(sp))
-            temp = []
-            for i in range(min_length):
-                if common[i] == sp[i]:
-                    temp.append(common[i])
-                else:
-                    break
-            common = temp
-        return "/" + "/".join(common)
+    def _tag_to_class_name(self, tag: str) -> str:
+        """Конвертирует тег в название класса: 'user-management' -> 'UserManagement'"""
+        normalized_tag = tag.replace('-', '_')
+        parts = re.split(r'[\s_]+', normalized_tag)
+        return ''.join(word.capitalize() for word in parts if word)
 
-    def _collect_sub_paths(self, eps: List[Endpoint], base_path: str) -> List[SubPath]:
-        sub_paths = []
-        for ep in eps:
-            path_suffix = ep.sanitized_path
-            if path_suffix.startswith(base_path):
-                path_suffix = path_suffix[len(base_path):]
-            if not path_suffix.startswith("/"):
-                path_suffix = "/" + path_suffix
-            if path_suffix and path_suffix != "/":
-                sub_path_name = self._extract_sub_path_name(path_suffix)
-                if sub_path_name not in [sp.name for sp in sub_paths]:
-                    sub_paths.append(SubPath(name=sub_path_name, path=path_suffix))
-        return sub_paths
+    def _generate_client_file(
+            self,
+            endpoints: List[Endpoint],
+            class_name: str,
+            file_name: str,
+            output_dir: str,
+            module_name: str,
+            service_path: str
+    ) -> None:
+        """Генерирует один файл клиента"""
+        method_contexts = [MethodContext.from_endpoint(ep) for ep in endpoints]
 
-    @staticmethod
-    def _extract_sub_path_name(sub_path: str) -> str:
-        segments = sub_path.strip("/").split("/")
-        if segments:
-            first_segment = segments[0]
-            if first_segment.startswith("{") and first_segment.endswith("}"):
-                return first_segment[1:-1]
-            return first_segment
-        return "sub_path"
+        rendered_content = self.template.render(
+            class_name=class_name,
+            service_path=service_path,
+            methods=method_contexts,
+            models_import_path=f"http_clients.{module_name}.models",
+            imports=self.imports
+        )
 
-    @staticmethod
-    def is_primitive_type(type_str: str) -> bool:
-        """Проверяет, является ли тип примитивным"""
-        primitive_types = {'str', 'int', 'float', 'bool', 'Any'}
-        return type_str in primitive_types
+        self._write_file(output_dir, file_name, rendered_content)
 
-    @staticmethod
-    def get_inner_type(list_type: str) -> str:
-        """Извлекает внутренний тип из List[Type]"""
-        if list_type.startswith('List[') and list_type.endswith(']'):
-            return list_type[5:-1]
-        return list_type
+    def _write_file(self, output_dir: str, file_name: str, content: str) -> None:
+        """Записывает содержимое в файл"""
+        file_path = os.path.join(output_dir, file_name)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
