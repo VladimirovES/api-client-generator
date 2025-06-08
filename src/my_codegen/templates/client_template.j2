@@ -48,17 +48,38 @@ class {{ class_name }}(ApiClient):
        r_json = self._{{ method.http_method.lower() }}(
            path=self._service + path,
            payload=[item.dict() for item in payload] if payload else None,
+           {% if method.query_params %}
+           params={
+               {% for param in method.query_params %}
+               '{{ param.name }}': {{ param.name }},
+               {% endfor %}
+           },
+           {% endif %}
            expected_status=status
        )
        {% elif method.payload_type and method.payload_type != 'Any' %}
        r_json = self._{{ method.http_method.lower() }}(
            path=self._service + path,
            payload=payload.dict() if payload else None,
+           {% if method.query_params %}
+           params={
+               {% for param in method.query_params %}
+               '{{ param.name }}': {{ param.name }},
+               {% endfor %}
+           },
+           {% endif %}
            expected_status=status
        )
        {% else %}
        r_json = self._{{ method.http_method.lower() }}(
            path=self._service + path,
+           {% if method.query_params %}
+           params={
+               {% for param in method.query_params %}
+               '{{ param.name }}': {{ param.name }},
+               {% endfor %}
+           },
+           {% endif %}
            expected_status=status
        )
        {% endif %}
