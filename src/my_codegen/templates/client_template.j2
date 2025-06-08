@@ -18,11 +18,7 @@ class {{ class_name }}(ApiClient):
         {{ param.name }}: {{ param.type }}{% if not param.required %} = None{% endif %},
         {% endfor %}
         {% if method.http_method == 'GET' %}
-        {% if method.query_params %}
-        extra_params: Optional[Dict[str, Any]] = None,
-        {% else %}
         params: Optional[Dict[str, Any]] = None,
-        {% endif %}
         {% else %}
         {% if method.payload_type %}
         payload: {{ method.payload_type }},
@@ -35,30 +31,21 @@ class {{ class_name }}(ApiClient):
         path = f"{{ method.path }}"
 
         {% if method.http_method == 'GET' %}
-        # Объединяем параметры
-        all_params = {}
-        {% for param in method.query_params %}
-        if {{ param.name }} is not None:
-            all_params['{{ param.name }}'] = {{ param.name }}
-        {% endfor %}
-        {% if method.query_params %}
-        if extra_params:
-            all_params.update(extra_params)
-        {% else %}
-        if params:
-            all_params.update(params)
-        {% endif %}
-
         r_json = self._get(
             path=self._service + path,
-            params=all_params if all_params else None,
+            params={
+                {% for param in method.query_params %}
+                '{{ param.name }}': {{ param.name }},
+                {% endfor %}
+                **(params or {})
+            },
             expected_status=status
         )
         {% elif method.http_method in ['POST', 'PUT', 'PATCH', 'DELETE'] %}
         {% if method.payload_type and method.payload_type.startswith('List[') %}
         r_json = self._{{ method.http_method.lower() }}(
             path=self._service + path,
-            payload=[item.dict() for item in payload],
+            payload=[item.dict() for item in payload] if payload else None,
             expected_status=status
         )
         {% elif method.payload_type and method.payload_type != 'Any' %}
