@@ -3,6 +3,7 @@ import logging
 import sys
 import uuid
 from enum import Enum
+import textwrap
 
 import allure
 import testit
@@ -27,7 +28,7 @@ def configure_logging():
     ch.setLevel(logging.INFO)
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter) 
+    ch.setFormatter(formatter)
 
     logger.addHandler(ch)
 
@@ -94,14 +95,25 @@ class ApiRequestError(AssertionError):
         self.payload = payload
         super().__init__(self._create_error_message())
 
-    def _truncate_text(self, text, max_length=80):
-        """Обрезает текст до указанной длины"""
-        if len(text) <= max_length:
+    def _wrap_long_lines(self, text, width=80):
+        """Переносит длинные строки на новые строки"""
+        if not text:
             return text
-        return text[:max_length - 3] + "..."
 
-    def _format_data(self, data, max_total_length=1500, max_line_length=80):
-        """Форматирует данные для отображения"""
+        lines = text.split('\n')
+        wrapped_lines = []
+
+        for line in lines:
+            if len(line) <= width:
+                wrapped_lines.append(line)
+            else:
+                wrapped = textwrap.fill(line, width=width, subsequent_indent='  ')
+                wrapped_lines.append(wrapped)
+
+        return '\n'.join(wrapped_lines)
+
+    def _format_data(self, data, max_total_length=None, line_width=80):
+        """Форматирует данные для отображения с переносом длинных строк"""
         if data is None:
             return "None"
 
@@ -110,21 +122,19 @@ class ApiRequestError(AssertionError):
                 try:
                     data = json.loads(data)
                 except json.JSONDecodeError:
-                    return self._truncate_text(data, max_total_length)
+                    return self._wrap_long_lines(data, line_width)
 
             formatted = json.dumps(data, indent=2, ensure_ascii=False, cls=UUIDEncoder)
 
-            lines = formatted.split('\n')
-            truncated_lines = [self._truncate_text(line, max_line_length) for line in lines]
-            result = '\n'.join(truncated_lines)
+            result = self._wrap_long_lines(formatted, line_width)
 
-            if len(result) > max_total_length:
-                return result[:max_total_length] + "\n... (truncated)"
+            if max_total_length and len(result) > max_total_length:
+                result = result[:max_total_length] + "\n... (truncated)"
 
             return result
 
         except Exception:
-            return self._truncate_text(str(data), max_total_length)
+            return self._wrap_long_lines(str(data), line_width)
 
     def _get_status_name(self, status_code):
         """Получает название статуса по коду"""
@@ -153,21 +163,21 @@ class ApiRequestError(AssertionError):
             f"Method: {self.method}",
             f"URL: {self.response.url}",
             line,
-            "📤 REQUEST PAYLOAD:",
+            "📤 REQUEST:",
             line,
-            self._format_data(self.payload, max_total_length=1000),
+            self._format_data(self.payload, max_total_length=5000),
             line,
-            "📥 SERVER RESPONSE:",
+            "📥 RESPONSE:",
             line,
-            self._format_data(self.response.text),
+            self._format_data(self.response.text, max_total_length=5000),
             line,
             "🏷️  REQUEST HEADERS:",
             line,
-            self._format_data(dict(self.response.request.headers), max_total_length=800),
+            self._format_data(dict(self.response.request.headers), max_total_length=2000),
             line,
             "🏷️  RESPONSE HEADERS:",
             line,
-            self._format_data(dict(self.response.headers), max_total_length=800),
+            self._format_data(dict(self.response.headers), max_total_length=2000),
             separator
         ]
 
