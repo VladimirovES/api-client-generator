@@ -1,5 +1,5 @@
-import argparse
 import os
+import click
 
 from dotenv import load_dotenv
 
@@ -17,20 +17,20 @@ load_dotenv()
 def main():
     # 1. Fetch SWAGGER_URL from .env or environment variables
     swagger_path = 'swagger.json'
-    parser = argparse.ArgumentParser(description="API Client Generator")
-    parser.add_argument(
-        "--swagger-url",
-        help="URL to download the Swagger JSON from",
-        required=True
-    )
-    args = parser.parse_args()
-
-    swagger_url = args.swagger_url
-    if swagger_url:
-        logger.info(f"Swagger URL from CLI: {swagger_url}")
-    else:
-        logger.info("No CLI swagger-url provided, will fallback to environment variable")
-    loader = SwaggerLoader(swagger_path)
+    # parser = argparse.ArgumentParser(description="API Client Generator")
+    # parser.add_argument(
+    #     "--swagger-url",
+    #     help="URL to download the Swagger JSON from",
+    #     required=True
+    # )
+    # args = parser.parse_args()
+    #
+    # swagger_url = args.swagger_url
+    # if swagger_url:
+    #     logger.info(f"Swagger URL from CLI: {swagger_url}")
+    # else:
+    #     logger.info("No CLI swagger-url provided, will fallback to environment variable")
+    # loader = SwaggerLoader(swagger_path)
 
     # 2. Download swagger.json
     logger.info("Downloading Swagger file...")
@@ -107,3 +107,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
