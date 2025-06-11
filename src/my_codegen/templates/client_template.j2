@@ -12,8 +12,8 @@ class {{ class_name }}(ApiClient):
     def {{ method.name }}(self,
         {% if method.required_params %}{{ method.required_params | join(',\n        ') }},{% endif %}
         {% if method.optional_params %}{{ method.optional_params | join(',\n        ') }},{% endif %}
+        headers: Optional[Dict[str, str]] = None,
         status: HTTPStatus = HTTPStatus.{{ method.expected_status }}) -> {{ method.return_type }}:
-
         path = f"{{ method.path }}"
         {{ method.http_call }}
         {{ method.return_statement }}

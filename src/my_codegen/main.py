@@ -14,23 +14,19 @@ from my_codegen.utils.logger import logger
 load_dotenv()
 
 
-def main():
-    # 1. Fetch SWAGGER_URL from .env or environment variables
+@click.command()
+@click.option('--swagger-url', required=True, help='URL to download the Swagger JSON from')
+def main(swagger_url):
     swagger_path = 'swagger.json'
-    # parser = argparse.ArgumentParser(description="API Client Generator")
-    # parser.add_argument(
-    #     "--swagger-url",
-    #     help="URL to download the Swagger JSON from",
-    #     required=True
-    # )
-    # args = parser.parse_args()
-    #
-    # swagger_url = args.swagger_url
-    # if swagger_url:
-    #     logger.info(f"Swagger URL from CLI: {swagger_url}")
-    # else:
-    #     logger.info("No CLI swagger-url provided, will fallback to environment variable")
-    # loader = SwaggerLoader(swagger_path)
+    loader = SwaggerLoader(swagger_path)  # ДОБАВИТЬ ЭТУ СТРОКУ
+
+    # 2. Download swagger.json
+    logger.info("Downloading Swagger file...")
+    loader.download_swagger(url=swagger_url)
+    logger.info("Swagger file downloaded. Now parsing the local swagger.json...")
+    loader.load()
+    module_name = loader.get_module_name()
+    logger.info(f"Service identified as: {module_name}")
 
     # 2. Download swagger.json
     logger.info("Downloading Swagger file...")

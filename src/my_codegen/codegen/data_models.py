@@ -120,6 +120,7 @@ class MethodContext:
             return f"""r_json = self._{method}(
                 path=self._service + path,
                 params={params_dict},
+                headers=headers,
                 expected_status=status
             )"""
 
@@ -141,6 +142,7 @@ class MethodContext:
                 params_dict += "}"
                 call_parts.append(f"params={params_dict}")
 
+            call_parts.append("headers=headers")  # ДОБАВИТЬ ЭТУ СТРОКУ
             call_parts.append("expected_status=status")
 
             # Выносим join отдельно
