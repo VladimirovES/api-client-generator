@@ -514,12 +514,12 @@ class GenerateData:
         self.data.update(kwargs)
         return self
 
-    def with_smart_generation(self, enabled: bool = True):
-        self.use_smart_generation = enabled
-        return self
-
-    def disable_smart_generation(self):
-        return self.with_smart_generation(False)
+    # def with_smart_generation(self, enabled: bool = True):
+    #     self.use_smart_generation = enabled
+    #     return self
+    #
+    # def disable_smart_generation(self):
+    #     return self.with_smart_generation(False)
 
     def build(self):
         return self.model_class.model_construct(_validate=False, **self.data)

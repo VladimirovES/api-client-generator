@@ -133,9 +133,9 @@ class HttpCallBuilder:
             return []
 
         if self.endpoint.payload_type.startswith('List['):
-            return ["payload=[item.dict() for item in payload] if payload else None"]
+            return ["payload=[item.model_dump_json() for item in payload] if payload else None"]
         elif self.endpoint.payload_type != 'Any':
-            return ["payload=payload.dict() if payload else None"]
+            return ["payload=payload.model_dump_json() if payload else None"]
 
         return []
 

@@ -62,7 +62,7 @@ class RequestHandler:
             self,
             method: str,
             url: str,
-            payload: Optional[Dict] = None,
+            payload: Optional[json] = None,
             headers: Optional[Dict] = None,
             params: Optional[Dict] = None,
             files: Optional[Dict] = None,
@@ -74,10 +74,7 @@ class RequestHandler:
             if not files:
                 headers["Content-Type"] = "application/json"
 
-        if payload is not None and not files:
-            data = json.dumps(payload, cls=UUIDEncoder)
-        else:
-            data = None
+        data = None if payload is None and files else payload
 
         request = requests.Request(
             method=method,
@@ -90,7 +87,8 @@ class RequestHandler:
         return request.prepare()
 
     def send_request(
-            self, prepared_request: requests.PreparedRequest, path: str
+            self,
+            prepared_request: requests.PreparedRequest, path: str
     ) -> requests.Response:
         response = self.session.send(prepared_request)
         return response

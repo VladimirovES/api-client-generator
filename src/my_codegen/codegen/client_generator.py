@@ -20,7 +20,9 @@ class ClientGenerator:
         )
         return env.get_template(template_name)
 
-    def generate_clients(self, output_dir: str, module_name: str, service_path: str) -> Dict[str, str]:
+    def generate_clients(self, output_dir: str,
+                         module_name: str,
+                         service_path: str) -> Dict[str, str]:
         """Генерирует клиентские файлы, группируя endpoints по тегам"""
         os.makedirs(output_dir, exist_ok=True)
 
